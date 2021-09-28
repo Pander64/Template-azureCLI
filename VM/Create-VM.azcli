@@ -1,8 +1,23 @@
 #!/bin/bash
 #az login
 
-locationazure = "eastus"
+myResourceGroup=1-99fbd23e-playground-sandbox
+locationazure=eastus
+NameVM=myVM
+Imagen=Win2019Datacenter
+SKU=Standard
+admin=azureuser
+pass=AlexanderBarroso.1234
+
+echo $locationazure
 
 az group create \
     --name myResourceGroup \
     --location $Location
+
+az vm create \
+    --resource-group $myResourceGroup \
+    --name $NameVM \
+    --image $Imagen \
+    --public-ip-sku $SKU \
+    --admin-username $admin 

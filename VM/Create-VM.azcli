@@ -1,0 +1,8 @@
+#!/bin/bash
+#az login
+
+locationazure = "eastus"
+
+az group create \
+    --name myResourceGroup \
+    --location $Location

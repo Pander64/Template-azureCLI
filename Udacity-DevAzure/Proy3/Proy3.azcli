@@ -1,0 +1,64 @@
+ #!/bin/bash
+ #az login
+
+resourcegroup=cloud-demo
+location=southcentralus
+NameVM=mydemoserverPAnder2344
+Admin=postgres
+Pass=AlexanderBarroso.1234
+SKU=GP_Gen5_2
+NameFirewallRule=AllowAll-IP
+databasePostgress=techconfdb
+NameBus=ContosoSBusNSAlexDemoUdacity
+NameWebApp=hello-world1234
+SKUAPP=F1
+SKUStorageAccount=Standard_LRS
+NameStorageAccount=mystorageudacitydemo43
+
+az postgres server create \
+    --resource-group $resourcegroup \
+    --name $NameVM  \
+    --location $location \
+    --admin-user $Admin \
+    --admin-password $Pass \
+    --sku-name $SKU
+
+az postgres server firewall-rule create \
+    --resource-group $resourcegroup \
+    --server $NameVM \
+    --name $NameFirewallRule \
+    --start-ip-address 0.0.0.0 \
+    --end-ip-address 255.255.255.255
+
+az postgres server show \
+    --resource-group $resourcegroup \
+    --name $NameVM 
+
+
+az postgres db create \
+    -g $resourcegroup \
+    -s $NameVM \
+    -n $databasePostgress
+
+az postgres server delete -g $resourcegroup -n $NameVM 
+
+az servicebus namespace create \
+    --resource-group $resourcegroup \
+    --name $NameBus \
+    --location $location
+
+#In the app 
+az appservice plan create -g MyResourceGroup -n MyPlan \
+    --is-linux --number-of-workers 4 --sku S1
+
+az webapp up \
+    --resource-group $resourcegroup  \
+    --name $NameWebApp\
+    --sku $SKUAPP \
+    --verbose
+
+az storage account create \
+    -n $NameStorageAccount \
+    -g $resourcegroup \
+    -l $location \
+    --sku $SKUStorageAccount

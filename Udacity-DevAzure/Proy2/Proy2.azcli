@@ -1,0 +1,99 @@
+# first login to your account
+az login
+
+# Function app and storage account names must be unique.
+# Cloud Lab users should use the existing Resource group in their account, such as cloud-demo-XXXXXX 
+storageName=udacityazuremicropander1 #needs to be lower case
+functionAppName=PanderFunctionApp
+region=westus
+myResourceGroup=cloud-demo
+accountName="azurecosmosdblab21" 
+serverVersion='4.0'
+databaseName='neighborlyproyect2'
+collectionName1='advertisements'
+collectionName2='posts'
+
+# Create a resource group.
+az group create --name $myResourceGroup --location $region
+
+# Create an Azure storage account in the resource group.
+az storage account create \
+  --name $storageName \
+  --location $region \
+  --resource-group $myResourceGroup \
+  --sku Standard_LRS
+
+# Create a function app in the resource group.
+az functionapp create \
+  --name $functionAppName \
+  --storage-account $storageName \
+  --consumption-plan-location $region \
+  --resource-group $myResourceGroup \
+  --functions-version 3 \
+  --os-type Linux \
+  --runtime python
+
+#Configure function app settings
+az functionapp config appsettings list --name $functionAppName \
+--resource-group $myResourceGroup
+
+az cosmosdb create \
+  -n $accountName \
+  -g $myResourceGroup \
+  --kind MongoDB \
+  --server-version $serverVersion \
+  --default-consistency-level Eventual \
+  --enable-automatic-failover false
+
+# printf ' 
+# [ 
+#   {
+#       "key": {"keys": ["_id"]}
+#   }
+# ]' > idxpolicy-$uniqueId.json
+
+##That is the labs of mongodb no of this script
+az cosmosdb mongodb collection create \
+  -a $accountName \
+  -g $myResourceGroup \
+  -d $databaseName \
+  -n $collectionName \
+  --shard 'id' \
+  --throughput 400 \
+  --idx @idxpolicy-$uniqueId.json
+
+
+az cosmosdb mongodb collection create \
+  --account-name $accountName \
+  --resource-group $myResourceGroup \
+  --database-name $databaseName \
+  --name $collectionName1 
+
+az cosmosdb mongodb collection create \
+  --account-name $accountName \
+  --resource-group $myResourceGroup \
+  --database-name $databaseName \
+  --name $collectionName2 
+
+az cosmosdb keys list \
+  -n $accountName \
+  -g $myResourceGroup \
+  --type connection-strings
+
+
+##move with cd to sampledata with mongocli
+mongoimport -h azurecosmosdblab21.mongo.cosmos.azure.com:10255 \
+ -d $databaseName -c $collectionName1 -u $accountName \
+  -p  o3Z82tPRMlg7yF8AbWA0xhEMMMzp3M57t5dMQ403Aslkv1ZCeBpTSfBIn1lO70iMDxep5X45WsO31Gv6vNaMag== \
+  --ssl --jsonArray  --file sampleAds.json
+
+##move with cd to sampledata with mongocli
+mongoimport -h azurecosmosdblab21.mongo.cosmos.azure.com:10255 \
+ -d $databaseName -c $collectionName2 -u $accountName \
+  -p  o3Z82tPRMlg7yF8AbWA0xhEMMMzp3M57t5dMQ403Aslkv1ZCeBpTSfBIn1lO70iMDxep5X45WsO31Gv6vNaMag== \
+  --ssl --jsonArray  --file samplePosts.json
+
+#https://docs.microsoft.com/azure/cosmos-db/connect-mongodb-account?WT.mc_id=udacity_learn-wwl
+
+
+func azure functionapp publish $functionAppName

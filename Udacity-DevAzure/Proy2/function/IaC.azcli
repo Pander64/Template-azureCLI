@@ -2,10 +2,14 @@
 az login
 
 # Function app and storage account names must be unique.
-storageName=udacityazuremicro
-functionAppName=l2p3DemoPythonFunctionApp
-region=eastus2
-myResourceGroup=udacityAzureMicroRG
+storageName=demoudacitypander1
+functionAppName=l2p3DemoPythonFunctionApp1
+region=westus
+myResourceGroup=cloud-demo1
+accountName="azurecosmosdblab21" 
+serverVersion='4.0'
+databaseName='myfirstdabase'
+collectionName1='myfirstcollection'
 
 # Create a resource group.
 az group create --name $myResourceGroup --location $region
@@ -26,3 +30,31 @@ az functionapp create \
   --functions-version 3 \
   --os-type Linux \
   --runtime python
+
+az cosmosdb create \
+  -n $accountName \
+  -g $myResourceGroup \
+  --kind MongoDB \
+  --server-version $serverVersion \
+  --default-consistency-level Eventual \
+  --enable-automatic-failover false
+
+az cosmosdb mongodb collection create \
+  --account-name $accountName \
+  --resource-group $myResourceGroup \
+  --database-name $databaseName \
+  --name $collectionName1 
+
+show dbs
+use myfirstdatabase
+
+az cosmosdb keys list \
+  -n $accountName \
+  -g $myResourceGroup \
+  --type connection-strings
+
+##move with cd to sampledata with mongocli
+mongoimport -h azurecosmosdblab21.mongo.cosmos.azure.com:10255 \
+ -d $databaseName -c $collectionName1 -u $accountName \
+  -p 0SmNDcjNu5c4Gsgi4N3YS7a4vW7IgAKxRFd8cdbVRTXgDlkR2f1eone8KWfDlaPwG2Raqzie33TzoRCRabWR7g== \
+  --ssl --jsonArray  --file data.json

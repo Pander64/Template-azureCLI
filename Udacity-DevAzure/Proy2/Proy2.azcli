@@ -4,9 +4,9 @@ az login
 # Function app and storage account names must be unique.
 # Cloud Lab users should use the existing Resource group in their account, such as cloud-demo-XXXXXX 
 storageName=udacityazuremicropander1 #needs to be lower case
-functionAppName=PanderFunctionApp
+functionAppName=neighborlyapi
 region=westus
-myResourceGroup=cloud-demo
+myResourceGroup=cloud-demo1
 accountName="azurecosmosdblab21" 
 serverVersion='4.0'
 databaseName='neighborlyproyect2'
@@ -84,16 +84,20 @@ az cosmosdb keys list \
 ##move with cd to sampledata with mongocli
 mongoimport -h azurecosmosdblab21.mongo.cosmos.azure.com:10255 \
  -d $databaseName -c $collectionName1 -u $accountName \
-  -p  o3Z82tPRMlg7yF8AbWA0xhEMMMzp3M57t5dMQ403Aslkv1ZCeBpTSfBIn1lO70iMDxep5X45WsO31Gv6vNaMag== \
+  -p p2lJ604fKCKkQ7bpHEOOGjSj455bOvJD4VN0rs4BjOhE0pNas2AvkMHWbAiSv2V6A2mLiTxA6Ln5iOyLrJS27A== \
   --ssl --jsonArray  --file sampleAds.json
 
 ##move with cd to sampledata with mongocli
 mongoimport -h azurecosmosdblab21.mongo.cosmos.azure.com:10255 \
  -d $databaseName -c $collectionName2 -u $accountName \
-  -p  o3Z82tPRMlg7yF8AbWA0xhEMMMzp3M57t5dMQ403Aslkv1ZCeBpTSfBIn1lO70iMDxep5X45WsO31Gv6vNaMag== \
+  -p p2lJ604fKCKkQ7bpHEOOGjSj455bOvJD4VN0rs4BjOhE0pNas2AvkMHWbAiSv2V6A2mLiTxA6Ln5iOyLrJS27A== \
   --ssl --jsonArray  --file samplePosts.json
 
 #https://docs.microsoft.com/azure/cosmos-db/connect-mongodb-account?WT.mc_id=udacity_learn-wwl
 
 
-func azure functionapp publish $functionAppName
+func azure functionapp publish $functionAppName --python
+##Hacerlo desde el function de azure VS code
+
+
+az webapp up --sku F1 -n <APP_NAME> --resource-group $myResourceGroup

@@ -1,8 +1,10 @@
 func init LocalAzureFuncProject --python
+func init getnotes --python
 
 cd LocalAzureFuncProj
 
-func new --name PythonHttpExample --template "HTTP trigger" --authlevel "anonymous"
+func new --name getNotes --template "HTTP trigger" --authlevel "anonymous"
+func new --name getNote --template "HTTP trigger" --authlevel "anonymous"
 
 func start
 

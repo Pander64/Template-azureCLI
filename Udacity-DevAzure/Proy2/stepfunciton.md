@@ -13,7 +13,7 @@ func new -n updateAdvertisement -t "HTTP trigger" --authlevel "anonymous"
 
 func start
 
-func azure functionapp publish l2p3DemoPythonFunctionApp12345abc
+func azure functionapp publish myneighborlyapiv1
 
 Invoke funcition 
 ?name=Azure%20Functions

@@ -16,3 +16,6 @@ Your project will be reviewed based on the criteria in the rubric. Once you have
 IMPORTANT:
 
 Please make sure to delete or stop resources in your resource group in Azure after receiving your grade for this course to avoid being billed for any running services when your free account with Azure expires.
+
+
+https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local?tabs=v3%2Clinux%2Cpython%2Cportal%2Cbash%2Ckeda

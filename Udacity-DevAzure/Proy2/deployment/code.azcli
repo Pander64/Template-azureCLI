@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# must be a unique, you can obtain these in the Azure Portal
+STORAGE_ACCT_NAME=<your_storage_name>
+FUNCTION_APP_NAME=<your_unique_function_name>
+RESOURCE_GROUP_NAME=<your_resource_group>
+APP_PLAN = <your_app_plan>
+REGION=eastus
+
+az group create --name $RESOURCE_GROUP --location $REGION
+
+# Create Your Function App
+az functionapp create \
+  --name $FUNCTION_APP_NAME --storage-account $STORAGE_ACCT_NAME --plan $APP_PLAN  \
+  --resource-group RESOURCE_GROUP_NAME 
+
+#Docker
+RESOURCE_GROUP="<your-resource-group-name>"
+APP_REGISTRY="<create-name-for-your-app-registry>"
+
+RESOURCE_GROUP="cloud-alex"
+APP_REGISTRY="alexdockerfirst"
+REGION=eastus
+
+az acr create --resource-group $RESOURCE_GROUP --name $APP_REGISTRY --sku Basic
+
+docker login <name-of-your-registry-on-azure>
+docker login alexdockerfirst.azurecr.io
+
+docker tag <your-image-name> <your-registry-name>.azurecr.io/<your-image-name>
+docker tag pander alexdockerfirst.azurecr.io/pander
+
+docker push <your-registry-name>.azurecr.io/<your-image-name>
+docker push alexdockerfirst.azurecr.io/pander
+
+FUNCTIONS_CLUSTER="Cluster2"
+
+az aks create \
+ --resource-group $RESOURCE_GROUP \
+ --name $FUNCTIONS_CLUSTER \
+ --node-count 1 \
+ --generate-ssh-keys
+
+az aks show --name $FUNCTIONS_CLUSTER --resource-group $RESOURCE_GROUP
+
+# you should already have these made
+RESOURCE_GROUP="<your-resource-group>"
+FUNCTIONS_CLUSTER="alexdockerfirst"
+# Get credentials
+az aks get-credentials --name $FUNCTIONS_CLUSTER --resource-group $RESOURCE_GROUP
+az aks get-credentials --resource-group $FUNCTIONS_CLUSTER --name $FUNCTIONS_CLUSTER --admin
+
+kubectl get service --watch
+kubectl get pods
+kubectl get nodes
+kubectl get deployments --all-namespaces
+
+APP_NAME="panderapp"
+REGISTRY_NAME="alexdockerfirst.azurecr.io"
+func deploy \
+  --platform kubernetes \
+  --name $APP_NAME \
+  --registry $REGISTRY_NAME
+
+kubectl config get-contexts

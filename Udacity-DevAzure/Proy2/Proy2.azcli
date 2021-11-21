@@ -3,15 +3,26 @@ az login
 
 # Function app and storage account names must be unique.
 # Cloud Lab users should use the existing Resource group in their account, such as cloud-demo-XXXXXX 
-storageName=udacityazuremicropander1 #needs to be lower case
+storageName=udacitymicropander17 #needs to be lower case
 functionAppName=neighborlyapi
-region=westus
-myResourceGroup=cloud-demo1
+region=eastus
+myResourceGroup=demo-alex
 accountName="azurecosmosdblab21" 
 serverVersion='4.0'
 databaseName='neighborlyproyect2'
 collectionName1='advertisements'
 collectionName2='posts'
+app_name=neighborlywebapp
+APP_REGISTRY="neighborlydocker"
+FUNCTIONS_CLUSTER="neighborlycluster"
+APP_NAME="neighborlyapp"
+eventHubName="neighboulyhub"
+eventHubNameEvent="neighboulyhubevent"
+
+storageConnectionString="mongodb://azurecosmosdblab21:W6cHc0JUTOWpCFQCPnMjY4nh5nILKiiQpthvBbs5EdRnNIzTr8qP4IIVCG1MChBcKzPPBU2biLtrYXijekuAig==@azurecosmosdblab21.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@azurecosmosdblab21@"
+
+## Use deafault suscriptions
+az account set --subscription <name or id>
 
 # Create a resource group.
 az group create --name $myResourceGroup --location $region
@@ -33,10 +44,7 @@ az functionapp create \
   --os-type Linux \
   --runtime python
 
-#Configure function app settings
-az functionapp config appsettings list --name $functionAppName \
---resource-group $myResourceGroup
-
+# Create Server CosmoDB with mongoDB
 az cosmosdb create \
   -n $accountName \
   -g $myResourceGroup \
@@ -45,59 +53,117 @@ az cosmosdb create \
   --default-consistency-level Eventual \
   --enable-automatic-failover false
 
-# printf ' 
-# [ 
-#   {
-#       "key": {"keys": ["_id"]}
-#   }
-# ]' > idxpolicy-$uniqueId.json
-
-##That is the labs of mongodb no of this script
-az cosmosdb mongodb collection create \
-  -a $accountName \
-  -g $myResourceGroup \
-  -d $databaseName \
-  -n $collectionName \
-  --shard 'id' \
-  --throughput 400 \
-  --idx @idxpolicy-$uniqueId.json
-
-
+# Databases mongoDB in CosmoDB 1
 az cosmosdb mongodb collection create \
   --account-name $accountName \
   --resource-group $myResourceGroup \
   --database-name $databaseName \
   --name $collectionName1 
 
+# Databases mongoDB in CosmoDB 2
 az cosmosdb mongodb collection create \
   --account-name $accountName \
   --resource-group $myResourceGroup \
   --database-name $databaseName \
   --name $collectionName2 
 
+# Key
 az cosmosdb keys list \
   -n $accountName \
   -g $myResourceGroup \
   --type connection-strings
 
+###Install mongodb
 
 ##move with cd to sampledata with mongocli
 mongoimport -h azurecosmosdblab21.mongo.cosmos.azure.com:10255 \
  -d $databaseName -c $collectionName1 -u $accountName \
-  -p p2lJ604fKCKkQ7bpHEOOGjSj455bOvJD4VN0rs4BjOhE0pNas2AvkMHWbAiSv2V6A2mLiTxA6Ln5iOyLrJS27A== \
+  -p W6cHc0JUTOWpCFQCPnMjY4nh5nILKiiQpthvBbs5EdRnNIzTr8qP4IIVCG1MChBcKzPPBU2biLtrYXijekuAig== \
   --ssl --jsonArray  --file sampleAds.json
 
 ##move with cd to sampledata with mongocli
 mongoimport -h azurecosmosdblab21.mongo.cosmos.azure.com:10255 \
  -d $databaseName -c $collectionName2 -u $accountName \
-  -p p2lJ604fKCKkQ7bpHEOOGjSj455bOvJD4VN0rs4BjOhE0pNas2AvkMHWbAiSv2V6A2mLiTxA6Ln5iOyLrJS27A== \
+  -p W6cHc0JUTOWpCFQCPnMjY4nh5nILKiiQpthvBbs5EdRnNIzTr8qP4IIVCG1MChBcKzPPBU2biLtrYXijekuAig== \
   --ssl --jsonArray  --file samplePosts.json
 
 #https://docs.microsoft.com/azure/cosmos-db/connect-mongodb-account?WT.mc_id=udacity_learn-wwl
 
+#Configure function app settings
+az functionapp config appsettings list --name $functionAppName \
+--resource-group $myResourceGroup
+
+#Set manually that
+az functionapp config appsettings set --name $functionAppName --resource-group $myResourceGroup --settings "MyDbConnection=$storageConnectionString"
+
+# copy/paste your primary connection url here
+### __init__.py
+
+python -m venv .venv
+source .venv/bin/activate
+pip3 install -r requirements.txt
+
+pipenv install
+pipenv shell
+func start --python
+deactivate
+
+export set FLASK_APP=hello_app.webapp
+python3 -m flask run
+
 
 func azure functionapp publish $functionAppName --python
 ##Hacerlo desde el function de azure VS code
+## no me gunciono lo hice mediante github action
 
 
-az webapp up --sku F1 -n <APP_NAME> --resource-group $myResourceGroup
+az webapp up --sku F1 -n $app_name --resource-group $myResourceGroup
+##pass with github acction and view de virtual envirement 
+
+az acr create --resource-group $myResourceGroup --name $APP_REGISTRY --sku Basic
+
+##Container Registries activate de Access Keys
+
+docker login neighborlydocker.azurecr.io
+
+Containerize the App
+func init --docker-only --python
+
+docker build . -t neighborlyapp
+
+docker run -p 8080:80 -it neighborlyapp
+
+docker tag <your-image-name> <your-registry-name>.azurecr.io/<your-image-name>
+docker tag neighborlyapp neighborlydocker.azurecr.io/neighborlyapp:v1
+
+docker push neighborlydocker.azurecr.io/neighborlyappv:1
+docker push <your-registry-name>.azurecr.io/<your-image-name>
+##Kubernate
+az aks create \
+ --resource-group $myResourceGroup \
+ --name $FUNCTIONS_CLUSTER \
+ --node-count 1 \
+ --generate-ssh-keys
+
+az aks show --name $FUNCTIONS_CLUSTER --resource-group $myResourceGroup
+
+az aks get-credentials --name $FUNCTIONS_CLUSTER --resource-group $myResourceGroup
+
+kubectl get service --watch
+kubectl get pods
+kubectl get nodes
+kubectl get deployments --all-namespaces
+
+REGISTRY_NAME="neighborlydocker.azurecr.io"
+func deploy \
+  --platform kubernetes \
+  --name $APP_NAME \
+  --registry $REGISTRY_NAME
+
+kubectl config get-contexts
+
+# Create an Event Hubs namespace. Specify a name for the Event Hubs namespace.
+az eventhubs namespace create --name $eventHubName --resource-group $myResourceGroup -l $region
+
+# Create an event hub. Specify a name for the event hub. 
+az eventhubs eventhub create --name $eventHubNameEvent --resource-group $myResourceGroup --namespace-name $eventHubName
